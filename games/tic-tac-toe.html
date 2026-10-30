@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tic Tac Toe</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8eef4;--grid:#cbd8e5;--ink:#1f2a44;--muted:#5d6b85;--x:#d6334a;--o:#1f5fbf;--card:#fff;--win:#fff3b8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a26;--grid:#232d40;--ink:#e6ecf5;--muted:#93a1ba;--x:#ff6b7f;--o:#6aa8ff;--card:#1c2435;--win:#3a3a1c}}
+:root[data-theme="dark"]{--bg:#141a26;--grid:#232d40;--ink:#e6ecf5;--muted:#93a1ba;--x:#ff6b7f;--o:#6aa8ff;--card:#1c2435;--win:#3a3a1c}
+*{box-sizing:border-box}
+html{height:100%;color-scheme:light dark}
+body{margin:0;min-height:100%;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;color:var(--ink);font-family:Nunito,system-ui,sans-serif;display:flex;justify-content:center;padding:20px 16px}
+main{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:Caveat,cursive;font-size:3rem;margin:0;text-align:center;line-height:1}
+.modes{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:12px}
+.modes button{flex:1;border:0;background:none;color:var(--muted);font:800 .82rem Nunito,sans-serif;padding:9px 2px;border-radius:8px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.score div{background:var(--card);border-radius:12px;padding:8px 4px}
+.score b{display:block;font-size:1.6rem}
+.score span{font-size:.8rem;color:var(--muted)}
+#status{text-align:center;font-weight:800;font-size:1.1rem;min-height:1.6em}
+.board{display:grid;grid-template-columns:repeat(3,1fr);background:var(--ink);gap:3px;border-radius:14px;overflow:hidden}
+.cell{aspect-ratio:1;border:0;background:var(--card);font:700 clamp(3rem,16vw,5rem)/1 Arial,Helvetica,sans-serif;cursor:pointer;color:var(--ink);padding:0}
+.cell.X{color:var(--x)}.cell.O{color:var(--o)}
+.cell.win{background:var(--win)}
+.cell:focus-visible,.modes button:focus-visible,#reset:focus-visible{outline:3px solid var(--o);outline-offset:-3px}
+#reset{border:0;background:var(--ink);color:var(--bg);font:800 1rem Nunito,sans-serif;padding:13px;border-radius:12px;cursor:pointer}
+.actions{display:flex;gap:10px}
+#reset{flex:1}
+#exit{flex:1;text-align:center;text-decoration:none;font:800 1rem Nunito,sans-serif;padding:11px;border-radius:12px;border:2px solid var(--ink);color:var(--ink)}
+#exit:focus-visible{outline:3px solid var(--o);outline-offset:2px}
+#welcome{position:fixed;inset:0;z-index:10;background:#fff;color:#1f2a44;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;animation:fadeOut 3s ease 1.2s forwards}
+#welcome>div{animation:pop .9s cubic-bezier(.2,.9,.3,1.2) both}
+#welcome .marks{font:700 4rem Arial,sans-serif;margin:0}
+#welcome .marks span:first-child{color:#d6334a}
+#welcome .marks span+span{color:#1f5fbf}
+#welcome h2{font-family:Caveat,cursive;font-size:3.2rem;margin:0}
+#welcome .sub{margin:6px 0 0;color:#5d6b85;font-weight:800}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#welcome>div{animation:none}}
+</style>
+</head>
+<body>
+<div id="welcome"><div><p class="marks"><span>X</span><span>O</span></p><h2>Welcome</h2><p class="sub">Let’s play Tic Tac Toe</p></div></div>
+<main>
+<h1>Tic Tac Toe</h1>
+<div class="modes" id="modes">
+<button data-m="easy" aria-pressed="false">Easy</button>
+<button data-m="medium" aria-pressed="false">Medium</button>
+<button data-m="hard" aria-pressed="true">Hard</button>
+<button data-m="two" aria-pressed="false">2 players</button>
+</div>
+<div class="score">
+<div><b id="sX">0</b><span id="lX">You (X)</span></div>
+<div><b id="sT">0</b><span>Draws</span></div>
+<div><b id="sO">0</b><span id="lO">Computer (O)</span></div>
+</div>
+<div id="status" aria-live="polite"></div>
+<div class="board" id="board"></div>
+<div class="actions"><button id="reset">New game</button><a id="exit" href="../index.html?exit=1#dashboard" target="_top">Exit</a></div>
+</main>
+<script src="../exit.js"></script>
+<script src="../sound.js"></script>
+<script>window.GA=window.GA||{init(){},sfx(){}}</script>
+<script>
+const W=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const $=s=>document.querySelector(s);
+let b,turn,over,mode='hard',score={X:0,O:0,T:0};
+const cells=[...Array(9)].map((_,i)=>{
+const c=document.createElement('button');
+c.className='cell';c.setAttribute('aria-label','Square '+(i+1));
+c.onclick=()=>{if(mode!=='two'&&turn==='O')return;play(i)};
+$('#board').append(c);return c});
+const win=b=>W.find(l=>b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[0]]===b[l[2]])||null;
+function mm(b,p){
+const w=win(b);
+if(w)return b[w[0]]==='O'?1:-1;
+if(b.every(Boolean))return 0;
+let best=p==='O'?-2:2;
+for(let i=0;i<9;i++)if(!b[i]){
+b[i]=p;
+const s=mm(b,p==='O'?'X':'O');
+b[i]=null;
+best=p==='O'?Math.max(best,s):Math.min(best,s)}
+return best}
+function ai(){
+const e=[...b.keys()].filter(i=>!b[i]);
+if(mode==='easy'||(mode==='medium'&&Math.random()<.5))return e[Math.random()*e.length|0];
+let best=-2,m=[];
+for(const i of e){
+b[i]='O';
+const s=mm(b,'X');
+b[i]=null;
+if(s>best){best=s;m=[i]}else if(s===best)m.push(i)}
+return m[Math.random()*m.length|0]}
+const name=p=>mode==='two'?p:p==='X'?'You':'Computer';
+function labels(){
+$('#lX').textContent=mode==='two'?'Player X':'You (X)';
+$('#lO').textContent=mode==='two'?'Player O':'Computer (O)';
+$('#sX').textContent=score.X;
+$('#sO').textContent=score.O;
+$('#sT').textContent=score.T}
+function status(t){$('#status').textContent=t}
+function newGame(){
+b=Array(9).fill(null);turn='X';over=false;
+cells.forEach(c=>{c.textContent='';c.className='cell'});
+labels();
+status(mode==='two'?'X’s turn':'Your turn')}
+function play(i){
+if(over||b[i])return;
+b[i]=turn;GA.sfx('pop');
+cells[i].textContent=turn;
+cells[i].classList.add(turn);
+const w=win(b);
+if(w){
+over=true;score[turn]++;
+w.forEach(j=>cells[j].classList.add('win'));
+status(mode==='two'?turn+' wins!':turn==='X'?'You win!':'Computer wins');GA.sfx(mode!=='two'&&turn==='O'?'lose':'win');
+labels();return}
+if(b.every(Boolean)){over=true;score.T++;status('It’s a draw');GA.sfx('bad');labels();return}
+turn=turn==='X'?'O':'X';
+if(mode==='two'){status(turn+'’s turn');return}
+if(turn==='O'){status('Computer is thinking…');setTimeout(()=>play(ai()),400)}
+else status('Your turn')}
+document.querySelectorAll('#modes button').forEach(btn=>btn.onclick=()=>{
+document.querySelectorAll('#modes button').forEach(x=>x.setAttribute('aria-pressed',x===btn));
+mode=btn.dataset.m;
+score={X:0,O:0,T:0};
+newGame()});
+$('#reset').onclick=newGame;
+newGame();
+GA.init({"root": 261.63, "scale": [0, 2, 4, 7, 9], "wave": "triangle", "bpm": 96, "gain": 0.1, "pat": "0 2 4 2 3 1 0 _ 2 4 5 4 3 2 1 _"});
+</script>
+</body>
+</html>

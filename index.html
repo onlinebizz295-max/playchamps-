@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Champs</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#4f7cff">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fb;--card:#fff;--ink:#1b2740;--muted:#62708f;--accent:#4f7cff;--nav:#fff;--line:#d9e1f2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{--bg:#10151f;--card:#1a2233;--ink:#e8eefc;--muted:#97a6c6;--accent:#7aa2ff;--nav:#161d2c;--line:#2a3550}
+:root[data-theme="ocean"]{--bg:#d9f1f7;--card:#fff;--ink:#0b3a4a;--muted:#497986;--accent:#0e9bb8;--nav:#bfe8f1;--line:#b3dce6}
+:root[data-theme="sunset"]{--bg:#ffe3d1;--card:#fff6ef;--ink:#4a2214;--muted:#8d5a45;--accent:#ff6a3d;--nav:#ffd2b8;--line:#f3c3a8}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Fredoka,"Trebuchet MS",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--nav)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:0;background:var(--accent);color:#fff;font-weight:600;font-size:1.1rem;padding:12px 26px;border-radius:14px}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:none;color:var(--ink);border:2px solid var(--line);font-size:.95rem;padding:8px 16px}
+#onboard{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{width:100%;max-width:400px;background:var(--card);border-radius:22px;padding:30px 22px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.12);animation:pop .5s ease both}
+.box h2{margin:0 0 18px;font-size:1.7rem}
+.box input{width:100%;font-size:1.4rem;text-align:center;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--bg);margin-bottom:16px}
+.err{color:#d6334a;min-height:1.4em;margin:-6px 0 8px;font-size:.95rem}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pick button{border:2px solid var(--line);background:var(--bg);border-radius:18px;padding:18px 6px;font-size:1.2rem;font-weight:600}
+.pick button span{display:block;font-size:2.6rem}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:2px solid var(--line)}
+.who{display:flex;align-items:center;gap:10px;font-size:1.1rem}
+.av{width:46px;height:46px;border-radius:50%;overflow:hidden;display:block;border:2px solid var(--accent)}
+.av svg{width:100%;height:100%;display:block}
+.set{position:relative}
+#setBtn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:8px 14px;font-weight:600}
+#menu{position:absolute;right:0;top:calc(100% + 8px);width:min(300px,86vw);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 14px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.row+.row{border-top:1px solid var(--line)}
+.row select{background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:6px 8px}
+.row input[type=range]{width:120px;accent-color:var(--accent)}
+.sw{appearance:none;-webkit-appearance:none;width:46px;height:26px;border-radius:13px;background:var(--line);position:relative;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+.sw:checked{background:var(--accent)}
+.sw:checked::after{left:23px}
+.wrap{max-width:1000px;margin:0 auto;padding:18px 16px 40px}
+.me{background:var(--card);border-radius:20px;padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.me h2{margin:0 0 8px;font-size:1.5rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{background:var(--bg);border-radius:999px;padding:6px 14px;font-weight:500}
+.chips b{color:var(--muted);font-weight:500;margin-right:4px}
+h3.sec{font-size:1.4rem;margin:26px 0 12px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:16px}
+.gcard{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.thumb{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;font-size:3.4rem}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.gbody{padding:14px;display:flex;flex-direction:column;gap:10px}
+.gbody h3{margin:0;font-size:1.15rem}
+.gbody .btn{width:100%}
+#game{height:100dvh;display:flex;flex-direction:column}
+.gbar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--nav);border-bottom:2px solid var(--line)}
+#frame{flex:1;width:100%;border:0;background:#fff}
+#loader{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-size:1.3rem;font-weight:600}
+.spin{width:54px;height:54px;border-radius:50%;border:6px solid var(--line);border-top-color:var(--accent);animation:spin 1s linear infinite}
+#welcome{position:fixed;inset:0;z-index:60;background:#fff;color:#1b2740;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;animation:fadeOut 3s ease 1.2s forwards}
+#welcome>div{animation:pop .9s cubic-bezier(.2,.9,.3,1.2) both}
+#welcome p{font-size:3.4rem;margin:0}
+#welcome h2{font-size:3.2rem;margin:0}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#welcome>div,.box{animation:none}.spin{animation-duration:3s}}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;background:#d6334a;color:#fff;border-radius:14px;padding:14px 16px;font-weight:600;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#upd{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--accent);color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#upd button{border:0;background:#fff;color:#1b2740;border-radius:12px;padding:9px 16px;font-weight:700;font-size:1rem;cursor:pointer;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="welcome"><div><p>👋</p><h2>Welcome</h2></div></div>
+<div id="toast" role="alert" hidden></div>
+<div id="upd" role="status" hidden><span>🎉 New games and fixes are ready!</span><button id="updBtn" type="button">Update now</button></div>
+<div id="loader" hidden><div class="spin"></div><span id="loadTxt"></span></div>
+
+<section id="onboard">
+<div class="box">
+<form class="step" id="f0" novalidate><h2>What is your name?</h2><input id="name" maxlength="20" autocomplete="off" aria-label="Your name"><div class="err" id="e0"></div><button class="btn">Enter</button></form>
+<form class="step" id="f1" hidden novalidate><h2>What is your age?</h2><input id="age" type="number" inputmode="numeric" min="1" max="120" aria-label="Your age"><div class="err" id="e1"></div><button class="btn">Enter</button></form>
+<div class="step" id="f2" hidden><h2>Male or Female?</h2><div class="pick"><button data-g="Male"><span>👦</span>Male</button><button data-g="Female"><span>👧</span>Female</button></div></div>
+</div>
+</section>
+
+<section id="home" hidden>
+<header>
+<div class="who"><span class="av" id="navAv"></span><b id="navName"></b></div>
+<div class="set">
+<button id="setBtn" aria-expanded="false">⚙️ Settings</button>
+<div id="menu" hidden>
+<label class="row"><span>Game sounds</span><input type="checkbox" class="sw" id="sound"></label>
+<label class="row"><span>Background theme</span><select id="theme"><option value="light">Light</option><option value="dark">Dark</option><option value="ocean">Ocean</option><option value="sunset">Sunset</option></select></label>
+<label class="row"><span>Music volume</span><input type="range" id="vol" min="0" max="100"></label>
+<label class="row"><span>Update alerts</span><input type="checkbox" class="sw" id="alerts"></label>
+</div>
+</div>
+</header>
+<div class="wrap">
+<div class="me">
+<div><h2 id="hi"></h2><div class="chips"><span><b>Name</b><i id="dName" style="font-style:normal"></i></span><span><b>Age</b><i id="dAge" style="font-style:normal"></i></span><span><b>Gender</b><i id="dGender" style="font-style:normal"></i></span></div></div>
+<button class="btn ghost" id="switch">Switch player</button>
+</div>
+<h3 class="sec">Choose a game</h3>
+<div id="grid"></div>
+</div>
+</section>
+
+<section id="game" hidden>
+<div class="gbar"><button class="btn ghost" id="back">← Back to games</button><b id="gTitle"></b><button class="btn ghost" id="snd" style="margin-left:auto" aria-label="Toggle sound">🔊</button></div>
+<iframe id="frame" title="Game" allow="autoplay"></iframe>
+</section>
+
+<script src="games.js"></script>
+<script src="sound.js"></script>
+<script>window.GA=window.GA||{init(){},sfx(){},music(){}}</script>
+<script>
+const AV={
+Male:'<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#8ecbff"/><circle cx="32" cy="35" r="16" fill="#f6c9a0"/><path d="M15 33c-1-15 12-20 19-17 9-1 14 8 14 17-4-7-10-10-16-10s-13 3-17 10z" fill="#3b2a20"/><circle cx="26" cy="36" r="2.2" fill="#222"/><circle cx="38" cy="36" r="2.2" fill="#222"/><path d="M26 43q6 5 12 0" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+Female:'<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#ffc2dc"/><path d="M13 58V32C13 15 23 11 32 11s19 4 19 21v26z" fill="#5a2d1c"/><circle cx="32" cy="36" r="15" fill="#f6c9a0"/><path d="M16 34c2-12 10-16 16-16s14 4 16 16c-5-6-10-8-16-8s-11 2-16 8z" fill="#5a2d1c"/><circle cx="26" cy="37" r="2.2" fill="#222"/><circle cx="38" cy="37" r="2.2" fill="#222"/><path d="M26 44q6 5 12 0" stroke="#c0392b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M47 14l9-5v11zM47 14l-9-5v11z" fill="#ff4f93"/></svg>'};
+const $=s=>document.querySelector(s);
+const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let P=read('hubProfile',null),draft={},busy=false,unlocked=false,ac;
+let S=read('hubSettings',{sound:true,theme:matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light',vol:50});
+const music=new Audio();
+music.loop=true;
+if(MUSIC_FILE)music.src=MUSIC_FILE;
+GA.init({root:261.63,scale:[0,2,4,5,7,9,11],wave:'triangle',bpm:108,gain:.09,pat:'0 2 4 5 4 2 0 _ 2 4 5 7 5 4 2 _',manual:true,nofile:true});
+function syncMusic(){
+music.volume=S.vol/100;
+const want=S.sound&&unlocked&&!$('#home').hidden;
+if(MUSIC_FILE){if(want)music.play().catch(()=>{});else music.pause()}
+else GA.music(want)}
+function beep(){
+if(!S.sound)return;
+try{
+ac=ac||new AudioContext();
+const o=ac.createOscillator(),g=ac.createGain();
+o.frequency.value=660;g.gain.value=.05;
+o.connect(g);g.connect(ac.destination);
+o.start();o.stop(ac.currentTime+.08)}catch(e){}}
+function applySettings(){
+document.documentElement.dataset.theme=S.theme;
+$('#sound').checked=S.sound;
+$('#theme').value=S.theme;
+$('#vol').value=S.vol;
+$('#alerts').checked=!!S.alerts&&'Notification' in window&&Notification.permission==='granted';
+$('#snd').textContent=S.sound?'🔊':'🔇';
+syncMusic()}
+function view(id){
+['onboard','home','game'].forEach(v=>$('#'+v).hidden=v!==id);
+scrollTo(0,0);syncMusic();updSync()}
+function step(n){
+document.querySelectorAll('.step').forEach((s,i)=>s.hidden=i!==n);
+if(n===1)$('#age').focus()}
+function enter(){
+$('#navAv').innerHTML=AV[P.gender]||AV.Male;
+$('#navName').textContent=P.name;
+$('#hi').textContent='Hi, '+P.name+'!';
+$('#dName').textContent=P.name;
+$('#dAge').textContent=P.age;
+$('#dGender').textContent=P.gender;
+view('home')}
+function loader(txt,done){
+if(busy)return;
+busy=true;
+$('#loadTxt').textContent=txt;
+$('#loader').hidden=false;
+setTimeout(()=>{done();$('#loader').hidden=true;busy=false},DELAY)}
+function toast(t,good){
+const x=$('#toast');
+x.textContent=t;
+x.style.background=good?'#2f9e57':'';
+x.hidden=false;
+clearTimeout(toast.t);
+toast.t=setTimeout(()=>x.hidden=true,8000)}
+function openGame(g){
+if(busy)return;
+fetch(g.file).then(r=>r.ok).catch(()=>false).then(ok=>{
+if(!ok){toast('Couldn’t find "'+g.file+'". Check that the file is inside the games folder and its name matches exactly, in lowercase.');return}
+$('#frame').src=g.file;
+$('#gTitle').textContent=g.title;
+loader('Loading '+g.title+'…',()=>{view('game');$('#frame').contentWindow.focus()})})}
+function thumb(g){
+const t=document.createElement('div');
+t.className='thumb';
+t.style.background='linear-gradient(135deg,'+g.colors[0]+','+g.colors[1]+')';
+const slug=g.file.split('/').pop().replace('.html','');
+const srcs=g.img?[g.img]:['png','jpg','jpeg','webp'].map(x=>'images/'+slug+'.'+x);
+const em=document.createElement('span');
+em.textContent=g.emoji;
+t.append(em);
+const im=new Image();
+let k=0;
+im.alt=g.title;
+im.onload=()=>{t.innerHTML='';t.append(im)};
+im.onerror=()=>{if(++k<srcs.length)im.src=srcs[k]};
+im.src=srcs[0];
+return t}
+GAMES.forEach(g=>{
+const c=document.createElement('article');
+c.className='gcard';
+c.innerHTML='<div class="gbody"><h3></h3><button class="btn">▶ Play</button></div>';
+c.prepend(thumb(g));
+c.querySelector('h3').textContent=g.title;
+c.querySelector('.btn').onclick=()=>openGame(g);
+$('#grid').append(c)});
+$('#f0').onsubmit=e=>{
+e.preventDefault();
+const v=$('#name').value.trim();
+if(!v){$('#e0').textContent='Please type your name';return}
+draft.name=v;$('#e0').textContent='';step(1)};
+$('#f1').onsubmit=e=>{
+e.preventDefault();
+const n=Number($('#age').value);
+if(!Number.isInteger(n)||n<1||n>120){$('#e1').textContent='Please enter an age from 1 to 120';return}
+draft.age=n;$('#e1').textContent='';step(2)};
+document.querySelectorAll('.pick button').forEach(b=>b.onclick=()=>{
+P={...draft,gender:b.dataset.g};
+write('hubProfile',P);
+enter()});
+$('#switch').onclick=()=>{
+try{localStorage.removeItem('hubProfile')}catch(e){}
+P=null;draft={};
+$('#name').value='';$('#age').value='';
+step(0);view('onboard')};
+$('#back').onclick=()=>loader('Heading back…',()=>{$('#frame').src='about:blank';view('home')});
+addEventListener('message',e=>{if(e.source===$('#frame').contentWindow&&e.data==='exit-game'){e.source.postMessage('exit-ack','*');if(!$('#game').hidden)$('#back').click()}});
+$('#setBtn').onclick=e=>{
+e.stopPropagation();
+const open=$('#menu').hidden;
+$('#menu').hidden=!open;
+$('#setBtn').setAttribute('aria-expanded',open)};
+document.addEventListener('click',e=>{
+if(!e.target.closest('.set')){$('#menu').hidden=true;$('#setBtn').setAttribute('aria-expanded',false)}
+if(e.target.closest('button'))beep()});
+document.addEventListener('pointerdown',()=>{unlocked=true;syncMusic()},{once:true});
+$('#sound').onchange=e=>{S.sound=e.target.checked;write('hubSettings',S);applySettings()};
+$('#theme').onchange=e=>{S.theme=e.target.value;write('hubSettings',S);applySettings()};
+$('#vol').oninput=e=>{S.vol=+e.target.value;write('hubSettings',S);applySettings()};
+$('#snd').onclick=()=>{S.sound=!S.sound;write('hubSettings',S);applySettings()};
+let updPending=false,updating=false,swReg=null;
+function updSync(){$('#upd').hidden=!(updPending&&!$('#home').hidden)}
+function updateFound(){
+updPending=true;
+updSync();
+if(S.alerts&&document.hidden&&swReg&&'Notification' in window&&Notification.permission==='granted')swReg.showNotification('New games are ready! 🎮',{body:'Open Play Champs to update.',icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:'play-champs-update'}).catch(()=>{})}
+function watchSW(reg){
+swReg=reg;
+if(reg.waiting&&navigator.serviceWorker.controller)updateFound();
+reg.addEventListener('updatefound',()=>{
+const w=reg.installing;
+if(!w)return;
+w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)updateFound()})});
+const check=()=>reg.update().catch(()=>{});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
+setInterval(check,30*60*1000)}
+if('serviceWorker' in navigator){
+addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(watchSW).catch(()=>{}));
+navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updating)location.reload()})}
+$('#updBtn').onclick=()=>{
+updating=true;
+if(swReg&&swReg.waiting)swReg.waiting.postMessage('SKIP_WAITING');
+else location.reload()};
+$('#alerts').onchange=async e=>{
+const el=e.target;
+if(!el.checked){S.alerts=false;write('hubSettings',S);return}
+if(!('Notification' in window)){el.checked=false;toast('This browser can’t show update alerts');return}
+let p=Notification.permission;
+if(p==='default')p=await Notification.requestPermission();
+if(p!=='granted'){el.checked=false;toast('Please allow notifications for this site in your browser settings');return}
+S.alerts=true;
+write('hubSettings',S);
+try{
+const reg=await navigator.serviceWorker.ready;
+if('periodicSync' in reg)await reg.periodicSync.register('check-update',{minInterval:12*60*60*1000})}catch(x){}
+toast('Update alerts are on',true)};
+applySettings();
+const ok=P&&P.name&&P.age&&AV[P.gender];
+if(location.hash==='#dashboard'){
+$('#welcome').remove();
+if(!ok)P={name:'Guest',age:'—',gender:'—'};
+enter()}
+else if(ok)enter();
+else{step(0);view('onboard')}
+</script>
+</body>
+</html>

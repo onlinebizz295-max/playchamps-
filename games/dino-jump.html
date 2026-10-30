@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dino Jump</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fdf0d8;--card:#fff;--ink:#4a2f0b;--muted:#8d6b3a;--accent:#e8892b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#201605;--card:#33240a;--ink:#fbeccb;--muted:#c9a86a;--accent:#ffa347}}
+:root[data-theme="dark"]{--bg:#201605;--card:#33240a;--ink:#fbeccb;--muted:#c9a86a;--accent:#ffa347}
+*{box-sizing:border-box}
+html{height:100%;color-scheme:light dark}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Fredoka,"Trebuchet MS",system-ui,sans-serif;display:flex;justify-content:center;padding:18px 16px}
+main{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px}
+h1{font-size:2.2rem;margin:0;text-align:center;line-height:1.1}
+.modes{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:14px}
+.modes button{flex:1;border:0;background:none;color:var(--muted);font:600 .95rem Fredoka,sans-serif;padding:10px 2px;border-radius:10px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.bar{display:flex;justify-content:space-between;font-weight:600;font-size:1.1rem}
+#fb{text-align:center;font-weight:600;min-height:1.5em}
+canvas{width:100%;aspect-ratio:480/200;display:block;border-radius:16px;touch-action:none;background:linear-gradient(#bfe6ff,#fff6df)}
+#jump{border:0;background:var(--accent);color:#fff;font:700 1.5rem Fredoka,sans-serif;padding:20px;border-radius:18px;cursor:pointer;touch-action:manipulation}
+#exit{text-align:center;text-decoration:none;font:600 1rem Fredoka,sans-serif;padding:11px;border-radius:14px;border:2px solid var(--ink);color:var(--ink)}
+button:focus-visible,#exit:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#welcome{position:fixed;inset:0;z-index:10;background:#fff;color:#4a2f0b;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;animation:fadeOut 3s ease 1.2s forwards}
+#welcome>div{animation:pop .9s cubic-bezier(.2,.9,.3,1.2) both}
+#welcome .icons{font-size:2.8rem;margin:0}
+#welcome h2{font-size:2.8rem;margin:0}
+#welcome .sub{margin:6px 0 0;color:#8d6b3a;font-weight:600}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#welcome>div{animation:none}}
+</style>
+</head>
+<body>
+<div id="welcome"><div><p class="icons">🦖🌵</p><h2>Welcome</h2><p class="sub">Let’s play Dino Jump</p></div></div>
+<main>
+<h1>Dino Jump</h1>
+<div class="modes" id="modes">
+<button data-l="easy" aria-pressed="true">Easy</button>
+<button data-l="medium" aria-pressed="false">Medium</button>
+<button data-l="hard" aria-pressed="false">Hard</button>
+</div>
+<div class="bar"><span id="sc">Score: 0</span><span id="bs">Best: 0</span></div>
+<div id="fb" aria-live="polite">Tap to start, tap to jump!</div>
+<canvas id="c" width="480" height="200"></canvas>
+<button id="jump">⬆ Jump</button>
+<a id="exit" href="../index.html?exit=1#dashboard" target="_top">Exit</a>
+</main>
+<script src="../exit.js"></script>
+<script src="../sound.js"></script>
+<script>window.GA=window.GA||{init(){},sfx(){}}</script>
+<script>
+const $=s=>document.querySelector(s);
+const cv=$('#c'),g=cv.getContext('2d'),GY=165,DX=70;
+const base={easy:240,medium:300,hard:380};
+let level='easy',state='ready',y=0,vy=0,dist=0,speed,obs,wait,best=0,last=0,cloud=300;
+try{best=+localStorage.getItem('dinoBest')||0}catch(e){}
+function reset(){
+y=0;vy=0;dist=0;obs=[];wait=1;speed=base[level];
+$('#sc').textContent='Score: 0';
+$('#bs').textContent='Best: '+best}
+function jump(){
+if(state==='over'){reset();state='run';$('#fb').textContent='Go!';return}
+if(state==='ready'){state='run';$('#fb').textContent='Go!'}
+if(y===0){vy=560;GA.sfx('jump')}}
+function crash(){
+state='over';GA.sfx('lose');
+const s=dist/10|0;
+if(s>best){
+best=s;
+try{localStorage.setItem('dinoBest',best)}catch(e){}}
+$('#bs').textContent='Best: '+best;
+$('#fb').textContent='Oops! Tap to try again 💪'}
+function frame(t){
+const dt=Math.min((t-last)/1000,.05);
+last=t;
+if(state==='run'){
+speed=Math.min(base[level]+dist/40,base[level]+160);
+dist+=speed*dt;
+vy-=1800*dt;
+y=Math.max(0,y+vy*dt);
+if(y===0&&vy<0)vy=0;
+wait-=dt;
+if(wait<=0){
+obs.push({x:500,n:Math.random()<.25?2:1});
+wait=(1.1+Math.random()*1.1)*(base[level]/speed)}
+obs.forEach(o=>o.x-=speed*dt);
+obs=obs.filter(o=>o.x>-60);
+if(obs.some(o=>o.x<DX+16&&o.x+o.n*26>DX-16&&y<24))crash();
+$('#sc').textContent='Score: '+(dist/10|0)}
+cloud-=30*dt;
+if(cloud<-40)cloud=520;
+draw();
+requestAnimationFrame(frame)}
+function draw(){
+g.clearRect(0,0,480,200);
+g.textBaseline='bottom';g.textAlign='center';
+g.font='34px Arial';
+g.fillText('☁️',cloud,60);
+g.fillStyle='#8d6b3a';
+g.fillRect(0,GY,480,3);
+g.font='40px Arial';
+obs.forEach(o=>{for(let k=0;k<o.n;k++)g.fillText('🌵',o.x+k*26,GY+4)});
+g.font='48px Arial';
+g.fillText(state==='over'?'😵':'🦖',DX,GY+4-y)}
+cv.addEventListener('pointerdown',jump);
+$('#jump').addEventListener('pointerdown',jump);
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('#modes button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+level=b.dataset.l;
+state='ready';
+reset();
+$('#fb').textContent='Tap to start, tap to jump!'});
+reset();
+requestAnimationFrame(frame);
+GA.init({"root": 164.81, "scale": [0, 3, 5, 7, 10], "wave": "square", "bpm": 160, "gain": 0.05, "pat": "0 0 2 3 2 0 0 4 3 2 3 2 0 _ 2 _"});
+</script>
+</body>
+</html>
