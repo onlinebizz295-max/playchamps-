@@ -3,7 +3,7 @@
 // 2. Copy one line in GAMES below and change the title, file, emoji and colors.
 // 3. Optional picture: save images/<game file name>.png (e.g. images/snake.png).
 // 4. Add 1 to SITE_VERSION so phones with the installed app get the update.
-const SITE_VERSION=8;
+const SITE_VERSION=9;
 const MUSIC_FILE='';
 const DELAY=2500;
 const GAMES=[
@@ -19,4 +19,5 @@ const GAMES=[
 {title:'Catch the Numbers',file:'games/catch-the-numbers.html',emoji:'🧺',img:'',colors:['#12a594','#7fe0d3']},
 {title:'Dino Jump',file:'games/dino-jump.html',emoji:'🦖',img:'',colors:['#e8892b','#ffc27a']},
 {title:'Sky Flap',file:'games/sky-flap.html',emoji:'🐥',img:'',colors:['#4fc3f7','#e1f5fe']},
-{title:'Space Arcade',file:'games/space-arcade.html',emoji:'🚀',img:'',colors:['#0b0b2e','#6c5ce7']}];
+{title:'Space Arcade',file:'games/space-arcade.html',emoji:'🚀',img:'',colors:['#0b0b2e','#6c5ce7']},
+{title:'Lane Racer',file:'games/lane-racer.html',emoji:'🚗',img:'',colors:['#ff7043','#ffcc80']}];
