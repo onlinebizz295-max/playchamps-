@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site check</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#eef3fb;color:#1b2740;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4}
+main{max-width:640px;margin:0 auto}
+h1{margin:0 0 6px;font-size:1.6rem}
+h2{margin:22px 0 8px;font-size:1.15rem}
+p{margin:6px 0}
+#sum{margin:14px 0;padding:14px;border-radius:14px;font-weight:700;background:#fff}
+#sum.good{background:#dff5e6;color:#14532d}
+#sum.bad{background:#fde2e4;color:#7f1d1d}
+.row{display:flex;gap:10px;align-items:flex-start;background:#fff;border-radius:12px;padding:10px 12px;margin:6px 0;word-break:break-word}
+.row b{flex:none;width:1.6em}
+.row small{display:block;color:#5d6b85;font-weight:400}
+.row.bad{background:#fff1f2}
+.row.warn{background:#fff8e1}
+.row img{flex:none;width:64px;height:40px;object-fit:cover;border-radius:6px;margin-left:auto}
+button{border:0;border-radius:12px;padding:12px 18px;font:inherit;font-weight:700;background:#4f7cff;color:#fff;margin:6px 8px 6px 0;cursor:pointer}
+button.alt{background:#fff;color:#1b2740;border:2px solid #cfd8ea}
+</style>
+</head>
+<body>
+<main>
+<h1>Site check</h1>
+<p>This page tests your live website and tells you which files or pictures are missing. It also clears the app’s saved copy first, so the test shows what your host really has.</p>
+<div id="sum">Checking…</div>
+<button id="again">Run again</button><button id="fix" class="alt">Clear saved copy &amp; reload</button>
+<div id="out"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const out=$('#out');
+let bad=0,warn=0;
+function add(kind,label,detail,src){
+const r=document.createElement('div');
+r.className='row '+kind;
+const mark=kind==='ok'?'✅':kind==='bad'?'❌':'⚠️';
+r.innerHTML='<b>'+mark+'</b><div><span></span><small></small></div>';
+r.querySelector('span').textContent=label;
+r.querySelector('small').textContent=detail||'';
+if(src){const i=document.createElement('img');i.src=src;r.append(i)}
+out.append(r);
+if(kind==='bad')bad++;
+if(kind==='warn')warn++}
+function head(t){const h=document.createElement('h2');h.textContent=t;out.append(h)}
+async function txt(u){
+try{const r=await fetch(u+(u.includes('?')?'&':'?')+'c='+Date.now(),{cache:'no-store'});return{ok:r.ok,t:await r.text()}}
+catch(e){return{ok:false,t:''}}}
+function img(u){
+return new Promise(res=>{
+const i=new Image();
+i.onload=()=>res(i);
+i.onerror=()=>res(null);
+i.src=u+(u.includes('?')?'&':'?')+'c='+Date.now()})}
+function loadGames(){
+return new Promise(res=>{
+const s=document.createElement('script');
+s.src='games.js?c='+Date.now();
+s.onload=()=>res(typeof GAMES!=='undefined');
+s.onerror=()=>res(false);
+document.head.append(s)})}
+async function clean(){
+try{
+const rs=await navigator.serviceWorker.getRegistrations();
+await Promise.all(rs.map(r=>r.unregister()));
+const ks=await caches.keys();
+await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}}
+async function run(){
+out.innerHTML='';bad=0;warn=0;
+$('#sum').className='';
+$('#sum').textContent='Checking…';
+if(location.protocol==='file:'){
+$('#sum').textContent='Open this page from your website address, not from a file on your computer.';
+return}
+head('Main files');
+const core=[
+['index.html',t=>t.includes('id="grid"'),t=>t.includes("'images/'+slug")?'Newest version (finds pictures automatically)':'Old version: upload the newest index.html'],
+['games.js',t=>t.includes('GAMES'),t=>'Site version '+(t.match(/SITE_VERSION=(\d+)/)||[0,'?'])[1]],
+['sound.js',t=>t.includes('window.GA'),()=>''],
+['exit.js',t=>t.includes('exit-dlg'),t=>t.includes('pause-btn')?'Has the Pause button':'Old version: no Pause button, upload the newest exit.js'],
+['sw.js',t=>t.includes('importScripts'),t=>t.includes('SKIP_WAITING')?'Has update alerts':'Old version: upload the newest sw.js'],
+['manifest.webmanifest',t=>{try{JSON.parse(t);return true}catch(e){return false}},()=>'']];
+for(const[f,test,info]of core){
+const r=await txt(f);
+if(!r.ok||!test(r.t))add('bad',f,'Not found at the top level of your site');
+else{const d=info(r.t);add(d.startsWith('Old')?'warn':'ok',f,d)}}
+for(const f of ['icons/icon-192.png','icons/icon-512.png']){
+const i=await img(f);
+if(i)add('ok',f,i.naturalWidth+'×'+i.naturalHeight,f);else add('bad',f,'Not found. The icons folder must be at the top level')}
+const have=await loadGames();
+if(!have){
+add('bad','games.js','Could not be read, so games and pictures can’t be checked');
+return finish()}
+head('Games ('+GAMES.length+')');
+for(const g of GAMES){
+const r=await txt(g.file);
+if(!r.ok||!r.t.includes('<title>')||r.t.includes('id="grid"'))add('bad',g.title,'Game file not found: '+g.file+'. Check the folder and the lowercase name');
+else add('ok',g.title,g.file)}
+head('Game pictures');
+const exts=['png','jpg','jpeg','webp','PNG','JPG','JPEG','WEBP'];
+for(const g of GAMES){
+const slug=g.file.split('/').pop().replace('.html','');
+const list=[g.img,...exts.map(x=>'images/'+slug+'.'+x)].filter(Boolean);
+let found=null,path='';
+for(const u of list){const i=await img(u);if(i){found=i;path=u;break}}
+if(found)add('ok',g.title,path+' ('+found.naturalWidth+'×'+found.naturalHeight+')',path);
+else add('bad',g.title,'No picture found. Expected: images/'+slug+'.png')}
+finish()}
+function finish(){
+const s=$('#sum');
+if(!bad&&!warn){s.className='good';s.textContent='✅ Everything is in place. Open your site again to see it.'}
+else if(!bad){s.className='';s.textContent='⚠️ Working, but '+warn+' file(s) are old versions. See the yellow rows.'}
+else{s.className='bad';s.textContent='❌ '+bad+' problem(s) found. Fix the red rows, then tap Run again.'}}
+$('#again').onclick=run;
+$('#fix').onclick=async()=>{await clean();location.replace('check.html?clean=1')};
+(async()=>{
+if(navigator.serviceWorker&&navigator.serviceWorker.controller&&!/clean=1/.test(location.search)){
+await clean();
+location.replace('check.html?clean=1');
+return}
+run()})();
+</script>
+</body>
+</html>
