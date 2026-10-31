@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lane Racer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff0e0;--card:#fff;--ink:#3a1d0a;--muted:#8a5a3a;--accent:#ff7043;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1209;--card:#33200f;--ink:#ffeedd;--muted:#d1a27f;--accent:#ff8a65}}
+:root[data-theme="dark"]{--bg:#1f1209;--card:#33200f;--ink:#ffeedd;--muted:#d1a27f;--accent:#ff8a65}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%;color-scheme:light dark}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Fredoka,"Trebuchet MS",system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
+main{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px}
+h1{font-size:2.1rem;margin:0;text-align:center;line-height:1.1}
+.modes{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:14px}
+.modes button{flex:1;border:0;background:none;color:var(--muted);font:600 .95rem Fredoka,sans-serif;padding:9px 2px;border-radius:10px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.bar{display:flex;justify-content:space-between;font-weight:600;font-size:1.05rem}
+#fb,#gfb{text-align:center;font-weight:600;min-height:1.4em;font-size:.95rem}
+#play{display:flex;flex-direction:column;gap:10px}
+canvas#c{width:100%;max-width:calc(56vh * .6923);aspect-ratio:360/520;display:block;margin:0 auto;border-radius:16px;touch-action:none;background:#4caf50}
+.ctrl{display:flex;gap:12px}
+.ctrl button{flex:1;border:0;background:var(--accent);color:#fff;font:700 1.8rem Fredoka,sans-serif;padding:12px;border-radius:16px;cursor:pointer;touch-action:manipulation}
+.big{border:2px solid var(--ink);background:var(--card);color:var(--ink);font:700 1.1rem Fredoka,sans-serif;padding:12px;border-radius:14px;cursor:pointer}
+.big:disabled{opacity:.45;cursor:not-allowed}
+#garage{display:flex;flex-direction:column;gap:10px}
+.gtop{display:flex;justify-content:space-between;align-items:center;font-size:1.3rem;font-weight:700}
+.gtop button{border:2px solid var(--ink);background:var(--card);color:var(--ink);font:700 1rem Fredoka,sans-serif;padding:8px 14px;border-radius:12px;cursor:pointer}
+h3{margin:6px 0 0;font-size:1.15rem}
+.cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.car{background:var(--card);border-radius:16px;padding:8px;text-align:center;border:3px solid transparent}
+.car.sel{border-color:var(--accent)}
+.car canvas{width:80px;height:110px;display:block;margin:0 auto}
+.car b{display:block;font-size:.95rem}
+.car button{width:100%;margin-top:6px;border:0;border-radius:10px;padding:8px 4px;font:700 .95rem Fredoka,sans-serif;background:var(--accent);color:#fff;cursor:pointer}
+.car button:disabled{background:#2f9e57}
+.car.lock button{background:#8e5be8}
+.colors{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.colors button{width:42px;height:42px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 2px rgba(0,0,0,.25);cursor:pointer;padding:0}
+.colors button[aria-pressed="true"]{box-shadow:0 0 0 4px var(--accent)}
+#exit{text-align:center;text-decoration:none;font:600 1rem Fredoka,sans-serif;padding:11px;border-radius:14px;border:2px solid var(--ink);color:var(--ink)}
+button:focus-visible,#exit:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#welcome{position:fixed;inset:0;z-index:10;background:#fff;color:#3a1d0a;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;animation:fadeOut 3s ease 1.2s forwards}
+#welcome>div{animation:pop .9s cubic-bezier(.2,.9,.3,1.2) both}
+#welcome .icons{font-size:2.8rem;margin:0}
+#welcome h2{font-size:2.8rem;margin:0}
+#welcome .sub{margin:6px 0 0;color:#8a5a3a;font-weight:600}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#welcome>div{animation:none}}
+</style>
+</head>
+<body>
+<div id="welcome"><div><p class="icons">🚗🪙</p><h2>Welcome</h2><p class="sub">Let’s play Lane Racer</p></div></div>
+<main>
+<h1>Lane Racer</h1>
+<div class="modes" id="modes">
+<button data-l="easy" aria-pressed="true">Easy</button>
+<button data-l="medium" aria-pressed="false">Medium</button>
+<button data-l="hard" aria-pressed="false">Hard</button>
+</div>
+<div class="bar"><span id="sc">0 m</span><span id="cn">🪙 0</span><span id="bs">Best: 0 m</span></div>
+<div id="fb" aria-live="polite">Tap ◀ or ▶ to start driving</div>
+<div id="play">
+<canvas id="c" width="360" height="520"></canvas>
+<div class="ctrl"><button id="L" aria-label="Move left">◀</button><button id="R" aria-label="Move right">▶</button></div>
+<button class="big" id="gbtn">🚗 Garage · 🪙 <span id="wal">0</span></button>
+</div>
+<section id="garage" hidden>
+<div class="gtop"><span>🪙 <span id="wal2">0</span></span><button id="gclose">✕ Close</button></div>
+<div id="gfb" aria-live="polite">Pick a car, then a color</div>
+<h3>Cars</h3>
+<div class="cars" id="cars"></div>
+<h3>Car color</h3>
+<div class="colors" id="colors"></div>
+</section>
+<a id="exit" href="../index.html?exit=1#dashboard" target="_top">Exit</a>
+</main>
+<script src="../exit.js"></script>
+<script src="../sound.js"></script>
+<script>window.GA=window.GA||{init(){},sfx(){}}</script>
+<script>
+const $=s=>document.querySelector(s);
+const cv=$('#c'),g=cv.getContext('2d'),W=360,H=520,RL=30,RW=300,LW=100,PY=430;
+const lx=l=>RL+LW*l+LW/2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const R=(a,b)=>a+Math.random()*(b-a);
+const RI=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const CARS=[{id:'hatch',name:'Starter',price:0},{id:'sport',name:'Sporty',price:60},{id:'taxi',name:'Taxi',price:120},{id:'suv',name:'Jeep',price:200},{id:'super',name:'Super Racer',price:400},{id:'truck',name:'Big Truck',price:700}];
+const COLORS=['#e63946','#ff8a3d','#ffd60a','#2fb344','#1d9bf0','#7c4dff','#ff6fb5','#111111','#ffffff','#8b5a2b'];
+const ENEMY=['#2f80ed','#2fb344','#ff8a3d','#8e5be8','#e0409a','#00bcd4','#9e9e9e','#ffd60a'];
+const DIM={hatch:[34,62],sport:[32,62],taxi:[36,62],suv:[40,68],truck:[46,100],super:[38,64]};
+const LV={easy:{v:220,dbl:.12,gap:300},medium:{v:270,dbl:.25,gap:260},hard:{v:325,dbl:.4,gap:225}};
+let level='easy',state='ready',dist=0,runCoins=0,lane=1,px=lx(1),cars=[],coins=[],parts=[],spawnD=0,t=0,off=0,last=0,crash=null,overAt=0,curS=220;
+const D={coins:0,owned:['hatch'],car:'hatch',color:'#e63946',best:0};
+try{Object.assign(D,JSON.parse(localStorage.getItem('laneRacer'))||{})}catch(e){}
+const save=()=>{try{localStorage.setItem('laneRacer',JSON.stringify(D))}catch(e){}};
+const bushes=[...Array(12)].map((_,i)=>({x:i%2?346:14,y:i*47,r:RI(7,11)}));
+function setState(s){state=s;$('#gbtn').disabled=s==='play'}
+function ui(){
+$('#sc').textContent=Math.floor(dist)+' m';
+$('#cn').textContent='🪙 '+runCoins;
+$('#bs').textContent='Best: '+D.best+' m';
+$('#wal').textContent=D.coins;
+$('#wal2').textContent=D.coins}
+function rr(c,x,y,w,h,r){
+c.beginPath();c.moveTo(x+r,y);
+c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);
+c.closePath()}
+function drawCar(c,x,y,style,col,s){
+c.save();c.translate(x,y);c.scale(s,s);
+const w=style==='truck'?23:style==='suv'?20:style==='super'?19:17,h=style==='truck'?50:style==='suv'?34:31;
+c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(3,4,w+3,h+3,0,0,7);c.fill();
+c.fillStyle='#111';
+[[-1,-.6],[1,-.6],[-1,.5],[1,.5]].forEach(([sx,sy])=>{rr(c,sx>0?w-2:-w-5,sy*h-8,7,16,3);c.fill()});
+rr(c,-w,-h,2*w,2*h,style==='sport'||style==='super'?13:9);
+c.fillStyle=col;c.fill();
+c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=2;c.stroke();
+if(style==='truck'){
+rr(c,-w+3,-h*.12,2*w-6,h*1.06,3);c.fillStyle='#e8e8e8';c.fill();c.strokeStyle='#9a9a9a';c.lineWidth=1.5;c.stroke();
+rr(c,-w+4,-h+6,2*w-8,h*.5,5);c.fillStyle='#bfe9ff';c.fill()}
+else{
+if(style==='sport'){c.fillStyle='rgba(255,255,255,.85)';c.fillRect(-3,-h,6,2*h)}
+if(style==='super'){c.fillStyle='rgba(255,255,255,.85)';c.fillRect(-7,-h,4,2*h);c.fillRect(3,-h,4,2*h)}
+rr(c,-w+3,-h*.38,2*w-6,h*.8,6);c.fillStyle='rgba(255,255,255,.2)';c.fill();
+rr(c,-w+4,-h*.34,2*w-8,h*.34,5);c.fillStyle='#bfe9ff';c.fill();
+rr(c,-w+5,h*.14,2*w-10,h*.22,4);c.fillStyle='#8fc7e6';c.fill();
+if(style==='taxi'){rr(c,-8,-4,16,9,2);c.fillStyle='#fff';c.fill();c.strokeStyle='#111';c.lineWidth=1.2;c.stroke()}
+if(style==='suv'){c.fillStyle='#222';c.fillRect(-w+4,-12,2*w-8,2.5);c.fillRect(-w+4,10,2*w-8,2.5)}
+if(style==='super'){rr(c,-w-2,h-7,2*w+4,7,2);c.fillStyle='#222';c.fill()}}
+c.fillStyle='#fff6a0';c.fillRect(-w+3,-h-1,7,4);c.fillRect(w-10,-h-1,7,4);
+c.fillStyle='#ff3b3b';c.fillRect(-w+3,h-3,7,4);c.fillRect(w-10,h-3,7,4);
+c.restore()}
+function reset(){
+dist=0;runCoins=0;lane=1;px=lx(1);cars=[];coins=[];parts=[];
+spawnD=120;t=0;crash=null;
+setState('ready');
+$('#fb').textContent='Tap ◀ or ▶ to start driving';
+ui()}
+function startRun(){
+if(state!=='ready')return;
+setState('play');
+$('#fb').textContent='Dodge the cars and grab the coins!'}
+function spawnRow(){
+const c=LV[level],lanes=[0,1,2].sort(()=>Math.random()-.5);
+const n=Math.random()<c.dbl?2:1;
+lanes.slice(0,n).forEach(l=>{
+const st=Math.random()<.12?'truck':['hatch','sport','taxi','suv'][RI(0,3)],d=DIM[st];
+cars.push({lane:l,y:-d[1]/2-20,style:st,w:d[0],h:d[1],col:ENEMY[RI(0,ENEMY.length-1)]})});
+const free=lanes.slice(n);
+if(free.length&&Math.random()<.85){
+const l=free[RI(0,free.length-1)];
+for(let k=0;k<3;k++)coins.push({lane:l,y:-30-k*50})}}
+function boom(x,y){
+setState('over');
+crash={x,y,t:0};
+overAt=performance.now();
+for(let i=0;i<26;i++){const a=R(0,6.3),v=R(60,260);parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:R(.4,1),col:['#ffd166','#ff8a3d','#ff5d5d','#fff'][i%4]})}
+GA.sfx('lose');
+const m=Math.floor(dist);
+if(m>D.best)D.best=m;
+save();ui();
+$('#fb').textContent='Boom! 💥 '+m+' m and '+runCoins+' coins. Tap to try again'}
+function update(dt){
+t+=dt;
+const c=LV[level];
+curS=c.v+Math.min(170,t*3.2);
+off+=curS*dt;dist+=curS*dt/38;
+px+=(lx(lane)-px)*Math.min(1,dt*14);
+spawnD-=curS*dt;
+if(spawnD<=0){spawnRow();spawnD=c.gap*R(.92,1.18)}
+cars.forEach(e=>e.y+=curS*dt);
+coins.forEach(k=>k.y+=curS*dt);
+cars=cars.filter(e=>e.y<H+110);
+coins=coins.filter(k=>k.y<H+30);
+for(const e of cars)if(Math.abs(px-lx(e.lane))<e.w/2+12&&Math.abs(PY-e.y)<e.h/2+24)return boom(px,(PY+e.y)/2);
+coins=coins.filter(k=>{
+if(Math.abs(px-lx(k.lane))<24&&Math.abs(PY-k.y)<34){
+runCoins++;D.coins++;save();GA.sfx('tick');return false}
+return true});
+ui()}
+function draw(){
+g.save();
+if(crash&&crash.t<.45)g.translate(R(-6,6),R(-6,6));
+g.fillStyle='#4caf50';g.fillRect(-10,-10,W+20,H+20);
+bushes.forEach(b=>{
+const y=((b.y+off)%(H+40))-20;
+g.fillStyle='#2e7d32';g.beginPath();g.arc(b.x,y,b.r,0,7);g.fill();
+g.fillStyle='#43a047';g.beginPath();g.arc(b.x-2,y-2,b.r*.55,0,7);g.fill()});
+g.fillStyle='#3b4252';g.fillRect(RL,0,RW,H);
+for(let y=-40+(off%40);y<H;y+=40){
+g.fillStyle=(Math.round((y-off%40)/40)%2)?'#e63946':'#fff';
+g.fillRect(RL-8,y,8,20);g.fillRect(RL+RW,y,8,20)}
+g.fillStyle='rgba(255,255,255,.85)';
+for(let y=-64+(off%64);y<H;y+=64){g.fillRect(RL+LW-2,y,4,34);g.fillRect(RL+2*LW-2,y,4,34)}
+coins.forEach(k=>{
+const w=Math.abs(Math.cos(t*6+k.y*.02))*8+3,x=lx(k.lane);
+g.fillStyle='#e0a100';g.beginPath();g.ellipse(x,k.y,w+2,12,0,0,7);g.fill();
+g.fillStyle='#ffd24d';g.beginPath();g.ellipse(x,k.y,w,10,0,0,7);g.fill();
+g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.ellipse(x-w*.3,k.y-3,w*.3,3,0,0,7);g.fill()});
+cars.forEach(e=>drawCar(g,lx(e.lane),e.y,e.style,e.col,1));
+drawCar(g,px,PY,D.car,D.color,1);
+parts.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2);g.fillStyle=p.col;g.fillRect(p.x-3,p.y-3,6,6)});
+g.globalAlpha=1;
+g.textAlign='center';g.textBaseline='middle';
+function label(s,y,sz,col){
+g.font='700 '+sz+'px Fredoka,Arial,sans-serif';g.lineJoin='round';
+g.strokeStyle='#1b1b1b';g.lineWidth=7;g.strokeText(s,W/2,y);
+g.fillStyle=col;g.fillText(s,W/2,y)}
+if(crash){
+const sz=Math.min(130,40+crash.t*600);
+g.font=sz+'px Arial';g.fillText('💥',crash.x,crash.y);
+if(crash.t>.35){label('BOOM!',130,52,'#ff5d5d');label(Math.floor(dist)+' m · 🪙 '+runCoins,185,26,'#fff');label('Tap to try again',230,24,'#ffd166')}}
+else if(state==='ready'){label('LANE RACER',150,40,'#fff');label('Tap ◀ ▶ or swipe',200,24,'#ffd166')}
+g.restore()}
+function frame(ts){
+const dt=Math.min((ts-last)/1000,.05);
+last=ts;
+if(state==='play')update(dt);
+else if(state==='ready'){off+=70*dt;t+=dt}
+if(crash)crash.t+=dt;
+parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt});
+parts=parts.filter(p=>p.life>0);
+draw();
+requestAnimationFrame(frame)}
+function move(d){
+if(state==='over'){
+if(performance.now()-overAt>600){reset();setState('play');$('#fb').textContent='Dodge the cars and grab the coins!'}
+return}
+if(state==='ready')startRun();
+if(state==='play')lane=clamp(lane+d,0,2)}
+$('#L').addEventListener('pointerdown',()=>move(-1));
+$('#R').addEventListener('pointerdown',()=>move(1));
+let p0=null;
+cv.addEventListener('pointerdown',e=>{p0=e});
+cv.addEventListener('pointerup',e=>{
+if(!p0)return;
+const dx=e.clientX-p0.clientX,r=cv.getBoundingClientRect();
+if(Math.abs(dx)>28)move(dx>0?1:-1);
+else move(e.clientX<r.left+r.width/2?-1:1);
+p0=null});
+addEventListener('keydown',e=>{
+const k={ArrowLeft:-1,ArrowRight:1,a:-1,d:1}[e.key];
+if(k){e.preventDefault();move(k)}});
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('#modes button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+level=b.dataset.l;
+reset()});
+function renderGarage(){
+$('#wal2').textContent=D.coins;
+const box=$('#cars');
+box.innerHTML='';
+CARS.forEach(c=>{
+const own=D.owned.includes(c.id),el=document.createElement('div');
+el.className='car'+(D.car===c.id?' sel':'')+(own?'':' lock');
+const cn=document.createElement('canvas');
+cn.width=160;cn.height=220;
+const cc=cn.getContext('2d');
+drawCar(cc,80,110,c.id,D.color,c.id==='truck'?1.8:2.2);
+const nm=document.createElement('b');
+nm.textContent=c.name;
+const bt=document.createElement('button');
+if(!own){bt.textContent='Buy 🪙 '+c.price;bt.onclick=()=>buy(c)}
+else if(D.car===c.id){bt.textContent='Selected ✓';bt.disabled=true}
+else{bt.textContent='Use';bt.onclick=()=>{D.car=c.id;save();GA.sfx('tick');$('#gfb').textContent=c.name+' selected';renderGarage()}}
+el.append(cn,nm,bt);
+box.append(el)});
+const cl=$('#colors');
+cl.innerHTML='';
+COLORS.forEach((col,i)=>{
+const b=document.createElement('button');
+b.style.background=col;
+b.setAttribute('aria-label','Color '+(i+1));
+b.setAttribute('aria-pressed',D.color===col);
+b.onclick=()=>{D.color=col;save();GA.sfx('tick');renderGarage()};
+cl.append(b)})}
+function buy(c){
+if(D.coins<c.price){
+GA.sfx('bad');
+$('#gfb').textContent='Not enough coins. You need '+(c.price-D.coins)+' more 🪙';
+return}
+D.coins-=c.price;D.owned.push(c.id);D.car=c.id;
+save();ui();
+GA.sfx('good');
+$('#gfb').textContent='You bought the '+c.name+'! 🎉';
+renderGarage()}
+$('#gbtn').onclick=()=>{
+if(state==='play')return;
+$('#play').hidden=true;$('#garage').hidden=false;
+$('#gfb').textContent='Pick a car, then a color';
+renderGarage()};
+$('#gclose').onclick=()=>{
+$('#garage').hidden=true;$('#play').hidden=false;
+ui()};
+reset();
+requestAnimationFrame(frame);
+GA.init({"root": 220, "scale": [0, 2, 4, 7, 9], "wave": "square", "bpm": 150, "gain": 0.04, "pat": "0 0 2 4 2 4 7 4 0 0 2 4 5 4 2 _"});
+</script>
+</body>
+</html>
