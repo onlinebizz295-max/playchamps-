@@ -3,7 +3,7 @@
 // 2. Copy one line in GAMES below and change the title, file, emoji and colors.
 // 3. Optional picture: save images/<game file name>.png (e.g. images/snake.png).
 // 4. Add 1 to SITE_VERSION so phones with the installed app get the update.
-const SITE_VERSION=9;
+const SITE_VERSION=10;
 const MUSIC_FILE='';
 const DELAY=2500;
 const GAMES=[
