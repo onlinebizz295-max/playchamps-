@@ -3,7 +3,9 @@
 // 2. Copy one line in GAMES below and change the title, file, emoji and colors.
 // 3. Optional picture: save images/<game file name>.png (e.g. images/snake.png).
 // 4. Add 1 to SITE_VERSION so phones with the installed app get the update.
-const SITE_VERSION=11;
+// 5. Phone notifications: paste your OneSignal App ID inside the quotes of ONESIGNAL_APP_ID.
+const SITE_VERSION=12;
+const ONESIGNAL_APP_ID='fc1d4f0a-33ee-478c-aca2-acae03842007';
 const MUSIC_FILE='';
 const DELAY=2500;
 const GAMES=[
@@ -21,4 +23,5 @@ const GAMES=[
 {title:'Sky Flap',file:'games/sky-flap.html',emoji:'🐥',img:'',colors:['#4fc3f7','#e1f5fe']},
 {title:'Space Arcade',file:'games/space-arcade.html',emoji:'🚀',img:'',colors:['#0b0b2e','#6c5ce7']},
 {title:'Lane Racer',file:'games/lane-racer.html',emoji:'🚗',img:'',colors:['#ff7043','#ffcc80']},
-{title:'Treasure Run',file:'games/treasure-run.html',emoji:'🏃',img:'',colors:['#0D98BA','#FFFF00']}];
+{title:'Treasure Run',file:'games/treasure-run.html',emoji:'🏃',img:'',colors:['#2e7d32','#a5d6a7']},
+{title:'Fruit Slice',file:'games/fruit-slice.html',emoji:'🍉',img:'',colors:['#e63946','#ffb199']}];
